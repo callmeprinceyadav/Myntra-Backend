@@ -42,7 +42,7 @@ This is the database made for Myntra frontend clone. This database is made using
 Instructions for setting up your project locally.
 
 ```sh
-git clone https://github.com/Rahulkrsharma2004/Myntra-App-Backend.git
+git clone https://github.com/callmeprinceyadav/Myntra-Backend
 cd Myntra-App-Backend
 npm install
 npm run dev
