@@ -1,46 +1,43 @@
 const CartModel = require("../Models/cartModel");
 const express = require("express");
-// const { auth } = require("../Middlewares/authMiddleware");
 const ProductModel = require("../Models/productModel");
 const { auth } = require("../Middlewares/authMiddleware");
 const cartRouter = express.Router();
 
-
-cartRouter.get("/",auth, async (req, res) => {
-  // const userId = req.body.userId;
+cartRouter.get("/", auth, async (req, res) => {
+  const userId = req.body.userID;
   try {
-    const carts = await CartModel.find()
+    const carts = await CartModel.find({ userId });
     const myCart = await Promise.all(
-      carts.map(async(ele)=>{
-        const product = await ProductModel.findOne({_id:ele.productId})
-        return product
+      carts.map(async (ele) => {
+        const product = await ProductModel.findOne({ _id: ele.productId });
+        return product;
       })
-    )
+    );
     return res.status(200).send({ success: true, myCart });
   } catch (error) {
     return res.status(404).send({ message: error.message });
   }
 });
 
+cartRouter.post("/add/:id", auth, async (req, res) => {
+  const productId = req.params.id;
+  const userId = req.body.userID;
 
-cartRouter.post("/add/:id", async (req, res) => {
-   const productId = req.params.id
-   console.log(productId)
-   
   try {
-      const cart = new CartModel({ productId });
-      await cart.save()
-      return res.status(201).send({ message: `Product Added Successfully` });
-    
+    const cart = new CartModel({ productId, userId });
+    await cart.save();
+    return res.status(201).send({ message: `Product Added Successfully` });
   } catch (error) {
-    return res.status(404).send({ message: "Something went wrong 123abc" });
+    return res.status(404).send({ message: "Something went wrong" });
   }
 });
 
-cartRouter.delete("/delete/:id", async (req, res) => {
+cartRouter.delete("/delete/:id", auth, async (req, res) => {
   const id = req.params.id;
+  const userId = req.body.userID;
   try {
-    const productToDelete = await CartModel.findOne({ productId: id });
+    const productToDelete = await CartModel.findOne({ productId: id, userId });
     if (productToDelete) {
       const idToDelete = productToDelete._id;
       await CartModel.findByIdAndDelete(idToDelete);
@@ -49,12 +46,22 @@ cartRouter.delete("/delete/:id", async (req, res) => {
         message: "Item is removed from cart!",
         deletedProduct: deletedProduct,
       });
-    } else
+    } else {
       throw new Error("Product not found! please pass a valid product id!");
+    }
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 });
 
+cartRouter.delete("/deleteall", auth, async (req, res) => {
+  const userId = req.body.userID;
+  try {
+    await CartModel.deleteMany({ userId });
+    res.status(200).json({ message: "Cart cleared successfully!" });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
 
 module.exports = cartRouter;

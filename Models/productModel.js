@@ -35,6 +35,11 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    stock: {
+      type: Number,
+      required: true,
+      default: 10,
+    },
   },
   {
     versionKey: false,

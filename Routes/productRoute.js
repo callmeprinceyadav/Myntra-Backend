@@ -43,25 +43,11 @@ productRouter.get("/",async (req, res) => {
     }
 
     if (category) {
-      // Check for different category filters
-      if (category === "Men" || category === "Women" || category === "Kids" || category === "Beauty") {
-        query.category = category;
-      } else {
-        // Handle invalid category value
-        return res.status(400).send({ message: "Invalid category value" });
-      }
+      query.category = category;
     }
 
     if (subcategory) {
-      // Check for different category filters
-      if (subcategory === "T-Shirts" || subcategory === "Jeans" || subcategory === "Flip Flops" ||
-        subcategory === "Kurtas & Suits" || subcategory === "Sarees" || subcategory === "Heels" ||
-        subcategory === "T-Shirts" || subcategory === "Party Wear" || subcategory === "Trousers" || subcategory === "Face Wash" || subcategory === "Lip Stick" || subcategory === "Beauty Gift") {
-        query.subcategory = subcategory;
-      } else {
-        // Handle invalid category value
-        return res.status(400).send({ message: "Invalid subcategory value" });
-      }
+      query.subcategory = subcategory;
     }
 
     if (brand) {

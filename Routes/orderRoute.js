@@ -2,10 +2,15 @@ const Product = require("../Models/productModel");
 const Order = require("../Models/orderModel");
 const express = require("express");
 const orderRouter = express.Router();
-const {auth} = require("../Middlewares/authMiddleware");
+const { auth } = require("../Middlewares/authMiddleware");
 
-//Create order
-orderRouter.post("/new",auth, async (req, res, next) => {
+// Test route
+orderRouter.get("/test", (req, res) => res.send("Order Router is Working!"));
+
+// Create order
+orderRouter.post("/new", auth, async (req, res) => {
+  console.log("Order creation request received at /orders/new");
+  console.log("Body:", req.body);
   const {
     shippingInfo,
     orderItems,
@@ -14,8 +19,9 @@ orderRouter.post("/new",auth, async (req, res, next) => {
     taxPrice,
     shippingPrice,
     totalPrice,
-    userId,
   } = req.body;
+
+  const userID = req.body.userID; // From auth middleware
 
   try {
     const order = await Order.create({
@@ -27,18 +33,25 @@ orderRouter.post("/new",auth, async (req, res, next) => {
       shippingPrice,
       totalPrice,
       paidAt: Date.now(),
-      user: userId,
+      user: userID,
     });
+    
+    // Update stock for each item
+    for (const item of orderItems) {
+      await updateStock(item.product, item.quantity);
+    }
+
     return res
       .status(201)
       .send({ message: "Order created successfully", order });
   } catch (error) {
-    return res.status(404).send({ error: error.message });
+    console.error("Order creation error:", error);
+    return res.status(400).send({ error: error.message });
   }
 });
 
 // get single order
-orderRouter.get("", auth,async (req, res) => {
+orderRouter.get("/single", auth, async (req, res) => {
   try {
     const order = await Order.findById(req.query.id).populate(
       "user",
@@ -54,9 +67,11 @@ orderRouter.get("", auth,async (req, res) => {
 });
 
 // get orders of logged in user
-orderRouter.get("/user", async (req, res) => {
+orderRouter.get("/user", auth, async (req, res) => {
   try {
-    const order = await Order.find({ user: req.query.id });
+    const order = await Order.find({ user: req.body.userID })
+      .populate("orderItems.product")
+      .sort({ createdAt: -1 });
     if (order.length === 0) {
       return res.status(404).send({ message: "No orders found" });
     }
@@ -67,7 +82,7 @@ orderRouter.get("/user", async (req, res) => {
 });
 
 // get all orders
-orderRouter.get("/all", auth,async (req, res) => {
+orderRouter.get("/all", auth, async (req, res) => {
   try {
     const orders = await Order.find();
     if (orders.length === 0) {
@@ -83,8 +98,8 @@ orderRouter.get("/all", auth,async (req, res) => {
   }
 });
 
-//update order status
-orderRouter.put("/update", auth,async (req, res) => {
+// update order status
+orderRouter.put("/update", auth, async (req, res) => {
   try {
     const order = await Order.findById(req.query.id);
 
@@ -108,25 +123,31 @@ orderRouter.put("/update", auth,async (req, res) => {
     return res.status(404).send({ error: error.message });
   }
 });
+
 async function updateStock(id, quantity) {
   try {
     const product = await Product.findById(id);
-    product.stock -= quantity;
-    await product.save({ validateBeforeSave: false });
+    if (product) {
+      product.stock -= quantity;
+      await product.save({ validateBeforeSave: false });
+    }
   } catch (err) {
-    console.log(err);
+    console.error("Stock update error:", err);
   }
 }
 
-//delete order
-orderRouter.delete("/delete", auth,async (req, res) => {
+// delete order
+orderRouter.delete("/delete", auth, async (req, res) => {
   try {
     const order = await Order.findById(req.query.id);
-    await order.remove();
-    return res.status(200).send({
-      success: true,
-      message: "order deleted successfully",
-    });
+    if (order) {
+      await order.deleteOne();
+      return res.status(200).send({
+        success: true,
+        message: "order deleted successfully",
+      });
+    }
+    return res.status(404).send({ message: "Order not found" });
   } catch (error) {
     return res.status(404).send({ error: error.message });
   }

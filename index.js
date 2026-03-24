@@ -22,6 +22,9 @@ app.use(cors({
 
 app.use(cookieParser());
 
+app.get("/", (req, res) => res.send("Myntra Backend is Running!"));
+app.get("/health", (req, res) => res.send("OK"));
+
 app.use("/products", productRouter);
 app.use("/users", userRouter);
 app.use("/orders", orderRouter);

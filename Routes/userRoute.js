@@ -107,4 +107,19 @@ userRouter.post("/logout", async (req, res) => {
   }
 });
 
+const { auth } = require("../Middlewares/authMiddleware");
+
+userRouter.put("/update", auth, async (req, res) => {
+  try {
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      req.body.userID,
+      req.body,
+      { new: true }
+    ).select("-pass");
+    res.status(200).json({ msg: "Profile updated successfully", user: updatedUser });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 module.exports = userRouter;

@@ -8,9 +8,7 @@ const refresh_secretKey = process.env.REFRESH_SECRET_KEY;
 const auth = async (req, res, next) => {
   const accessToken = req.cookies.ACCESS_TOKEN;
   const refreshToken = req.cookies.REFRESH_TOKEN;
-  console.log(accessToken)
-  console.log(refreshToken)
-  console.log(refreshToken)
+  
   try {
 
     if (!accessToken) {

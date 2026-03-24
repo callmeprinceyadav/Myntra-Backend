@@ -14,8 +14,24 @@ const userSchema = new mongoose.Schema(
     },
     pass: {
       type: String,
-      required:true
-    }
+      required: true,
+    },
+    phone: {
+      type: String,
+      default: "",
+    },
+    avatar: {
+      type: String,
+      default: "",
+    },
+    gender: {
+      type: String,
+      default: "",
+    },
+    shipping: {
+      type: String,
+      default: "",
+    },
   },
   {
     versionKey: false,
